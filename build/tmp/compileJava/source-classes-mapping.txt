@@ -1,13 +1,11 @@
-educanet/models/Player.java
- educanet.models.Player
-educanet/Shaders.java
- educanet.Shaders
+educanet/models/Gamefield.java
+ educanet.models.Gamefield
 educanet/utils/FileUtils.java
  educanet.utils.FileUtils
-educanet/models/Square.java
- educanet.models.Square
-educanet/models/GameObject.java
- educanet.models.GameObject
+educanet/Shaders.java
+ educanet.Shaders
+educanet/models/Player.java
+ educanet.models.Player
 educanet/Game.java
  educanet.Game
 educanet/Main.java

@@ -10,29 +10,29 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 public class Player {
-    private static final float[] vertices = {
+    private final float[] vertices = {
             0.5f, 0.5f, 0.0f, // 0 -> Top right
             0.5f, -0.5f, 0.0f, // 1 -> Bottom right
             -0.5f, -0.5f, 0.0f, // 2 -> Bottom left
             -0.5f, 0.5f, 0.0f, // 3 -> Top left
     };
 
-    private static final float[] colors = {
+    private final float[] colors = {
             1.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f,
             0.0f, 0.0f, 1.0f,
             0.0f, 0.0f, 0.0f,
     };
 
-    private static final int[] indices = {
+    private final int[] indices = {
             0, 1, 3, // First triangle
             1, 2, 3 // Second triangle
     };
 
-    private static int squareVaoId;
-    private static int squareVboId;
-    private static int squareEboId;
-    private static int colorsId;
+    private final int squareVaoId;
+    private final int squareVboId;
+    private final int squareEboId;
+    private final int colorsId;
 
     private static int uniformColorLocation;
     private static int uniformMatrixLocation;
@@ -90,31 +90,31 @@ public class Player {
         MemoryUtil.memFree(fb);
     }
 
-    public static float[] getVertices() {
+    public float[] getVertices() {
         return vertices;
     }
 
-    public static float[] getColors() {
+    public float[] getColors() {
         return colors;
     }
 
-    public static int[] getIndices() {
+    public int[] getIndices() {
         return indices;
     }
 
-    public static int getSquareVaoId() {
+    public int getSquareVaoId() {
         return squareVaoId;
     }
 
-    public static int getSquareVboId() {
+    public int getSquareVboId() {
         return squareVboId;
     }
 
-    public static int getSquareEboId() {
+    public int getSquareEboId() {
         return squareEboId;
     }
 
-    public static int getColorsId() {
+    public int getColorsId() {
         return colorsId;
     }
 
@@ -122,7 +122,7 @@ public class Player {
         return matrix;
     }
 
-    public static int getUniformColorLocation() {
+    public int getUniformColorLocation() {
         return uniformColorLocation;
     }
 
