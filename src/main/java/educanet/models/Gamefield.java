@@ -1,5 +1,7 @@
 package educanet.models;
 
+import educanet.Shaders;
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryUtil;
@@ -21,7 +23,7 @@ public class Gamefield {
     };
 
     float[] color = {
-            0.8f, 0.8f, 0.8f,
+            1.0f, 1.0f, 1.0f,
             0.8f, 0.8f, 0.8f,
             0.8f, 0.8f, 0.8f,
             0.8f, 0.8f, 0.8f,
@@ -34,7 +36,17 @@ public class Gamefield {
     private int eboId;
     private int colorId;
 
+    private static int uniformColorLocation;
+    private static int uniformMatrixLocation;
+
+    public static Matrix4f matrix = new Matrix4f()
+            .identity();
+    public static FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+
     public Gamefield() {
+        uniformColorLocation = GL33.glGetUniformLocation(Shaders.shaderProgramId, "outColor");
+        uniformMatrixLocation = GL33.glGetUniformLocation(Shaders.shaderProgramId, "matrix");
+
         vaoId = GL33.glGenVertexArrays();
         vboId = GL33.glGenBuffers();
         eboId = GL33.glGenBuffers();
@@ -43,13 +55,14 @@ public class Gamefield {
         // tell OpenGL we are currently writing into this buffer (eboId)
         GL33.glBindVertexArray(vaoId);
 
+        // Tell OpenGL we are currently writing to this buffer (eboId)
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, eboId);
         IntBuffer ib = BufferUtils.createIntBuffer(indices.length)
                 .put(indices)
                 .flip();
         GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, ib, GL33.GL_STATIC_DRAW);
 
-
+        // Change to VBOs...
         // tell OpenGL we are currently writing into this buffer (vboId)
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vboId);
 
@@ -61,7 +74,6 @@ public class Gamefield {
         GL33.glBufferData(GL33.GL_ARRAY_BUFFER, fb, GL33.GL_STATIC_DRAW);
         GL33.glVertexAttribPointer(0,3, GL33.GL_FLOAT, false, 0, 0);
         GL33.glEnableVertexAttribArray(0);
-
 
         // tell OpenGL we are currently writing into this buffer (vboId)
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, colorId);

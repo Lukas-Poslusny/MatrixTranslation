@@ -38,6 +38,7 @@ public class Main {
         // Draw in polygon mod
         // GL33.glPolygonMode(GL33.GL_FRONT_AND_BACK, GL33.GL_LINE);
         while (!GLFW.glfwWindowShouldClose(window)) {
+
             // Key input management
             if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS)
                 GLFW.glfwSetWindowShouldClose(window, true); // Send a shutdown signal...

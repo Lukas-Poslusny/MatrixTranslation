@@ -11,17 +11,17 @@ import java.nio.IntBuffer;
 
 public class Player {
     private final float[] vertices = {
-            0.5f, 0.5f, 0.0f, // 0 -> Top right
-            0.5f, -0.5f, 0.0f, // 1 -> Bottom right
-            -0.5f, -0.5f, 0.0f, // 2 -> Bottom left
-            -0.5f, 0.5f, 0.0f, // 3 -> Top left
+            0.125f, 0.125f, 0f, // 0 -> Top right
+            0.125f, -0.125f, 0f, // 1 -> Bottom right
+            -0.125f, -0.125f, 0f, // 2 -> Bottom left
+            -0.125f, 0.125f, 0f, // 3 -> Top left
     };
 
-    private final float[] colors = {
+    private float[] colors = {
             1.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
     };
 
     private final int[] indices = {
@@ -38,8 +38,7 @@ public class Player {
     private static int uniformMatrixLocation;
 
     private static Matrix4f matrix = new Matrix4f()
-            .identity()
-            .scale(0.25f, 0.25f, 0.25f);
+            .identity();
     private static FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
 
     public Player() {
@@ -75,16 +74,30 @@ public class Player {
         GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0);
         GL33.glEnableVertexAttribArray(0);
 
-        // Clear the buffer from the memory (it's saved now on the GPU, no need for it here)
-        MemoryUtil.memFree(fb);
 
         GL33.glUseProgram(Shaders.shaderProgramId);
         GL33.glUniform3f(uniformColorLocation, 1.0f, 0.0f, 0.0f);
 
         // Sending Mat4 to GPU
         matrix.get(matrixBuffer);
-
         GL33.glUniformMatrix4fv(uniformMatrixLocation, false, matrixBuffer);
+
+        // Send the buffer (positions) to the GPU
+        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, fb, GL33.GL_STATIC_DRAW);
+        GL33.glVertexAttribPointer(0,3, GL33.GL_FLOAT, false, 0, 0);
+        GL33.glEnableVertexAttribArray(0);
+
+        // tell OpenGL we are currently writing into this buffer (vboId)
+        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, colorsId);
+
+        FloatBuffer cb = BufferUtils.createFloatBuffer(colors.length)
+                .put(colors)
+                .flip();
+
+        // Send the buffer (positions) to the GPU
+        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
+        GL33.glVertexAttribPointer(1,3, GL33.GL_FLOAT, false, 0, 0);
+        GL33.glEnableVertexAttribArray(1);
 
         // Clear the buffer from the memory (it's saved now on the GPU, no need for it here)
         MemoryUtil.memFree(fb);
@@ -134,5 +147,8 @@ public class Player {
         return matrixBuffer;
     }
 
+    public void setColors(float[] newColors) {
+        colors = newColors;
+    }
 
 }
