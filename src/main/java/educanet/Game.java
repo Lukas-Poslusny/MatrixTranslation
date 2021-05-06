@@ -32,7 +32,7 @@ public class Game {
 
     public static void update(long window) {
         movePlayer(window, Player.getMatrix());
-        checkCollision();
+        doesCollide();
     }
 
 
@@ -124,8 +124,8 @@ public class Game {
             Gamefield g = new Gamefield();
             float[] newVerticies = {
                     Float.parseFloat(objAtrribs[0]) + Float.parseFloat(objAtrribs[2]), Float.parseFloat(objAtrribs[1]),                                   0, // top right
-                    Float.parseFloat(objAtrribs[0]) + Float.parseFloat(objAtrribs[2]), Float.parseFloat(objAtrribs[1]) + Float.parseFloat(objAtrribs[2]), 0, // bottom right
-                    Float.parseFloat(objAtrribs[0]),                                   Float.parseFloat(objAtrribs[1]) + Float.parseFloat(objAtrribs[2]), 0, // bottom left
+                    Float.parseFloat(objAtrribs[0]) + Float.parseFloat(objAtrribs[2]), Float.parseFloat(objAtrribs[1]) - Float.parseFloat(objAtrribs[2]), 0, // bottom right
+                    Float.parseFloat(objAtrribs[0]),                                   Float.parseFloat(objAtrribs[1]) - Float.parseFloat(objAtrribs[2]), 0, // bottom left
                     Float.parseFloat(objAtrribs[0]),                                   Float.parseFloat(objAtrribs[1]),                                   0, // top left
             };
             g.setVertices(newVerticies);
@@ -144,30 +144,32 @@ public class Game {
 
     static boolean collides = false;
 
-    public static void checkCollision() {
+    static int counter = 0;
+    public static boolean checkCollision() {
         for (int i = 0; i < gamefieldObjectArrayList.size(); i++) {
             // for all 4 corner of player if x is in interval of (x left < corner < x right of object)
             Gamefield g = gamefieldObjectArrayList.get(i);
 
             float[] verticesObject = g.getVertices();
 
+            counter++;
+
             // top left corner of player
-            if (((playerTopLeftX > verticesObject[topLeftX] && playerTopLeftX < verticesObject[topRightX])
-                    || (playerTopLeftX + 0.25f > verticesObject[botLeftX] && playerTopLeftX +0.25f < verticesObject[botRightX]))
+            if (((playerTopLeftX > verticesObject[topLeftX] && playerTopLeftX < verticesObject[topRightX]) // check upper x axis
+                    || (playerTopLeftX + 0.25f > verticesObject[botLeftX] && playerTopLeftX +0.25f < verticesObject[botRightX])) // check bottom x axis
                     &&
-                    (playerTopLeftY > verticesObject[botLeftY] && playerTopLeftY < verticesObject[topLeftY])
-                    || (playerTopLeftY + 0.25f > verticesObject[botRightY] && playerTopLeftY + 0.25f < verticesObject[topRightY]))
+                    ((playerTopLeftY > verticesObject[botLeftY] && playerTopLeftY < verticesObject[topLeftY]) // check left-side y axis
+                    || (playerTopLeftY - 0.25f > verticesObject[botRightY] && playerTopLeftY - 0.25f < verticesObject[topRightY]))) // check right-side y axis
             {
-                collides = true;
-                System.out.println("colides");
+
+                if (counter % 100 == 0) {
+                    System.out.println("collides" + "  " + counter);
+                }
+                return true;
             }
         }
-        // memory leak ->
-        System.out.println(playerTopLeftX + "  " + playerTopLeftY);
-
-        collides = false;
+        return false;
     }
-
 
     public static float[] green = {
             0.0f, 1.0f, 0.0f,
@@ -182,33 +184,29 @@ public class Game {
             1.0f, 0.0f, 0.0f,
     };
 
-    public static void doesCollide() {
-        /*
-        if (checkCollision()) {
-            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, mainPlayer.getColorsId());
+    static FloatBuffer cb = BufferUtils.createFloatBuffer(12).put(green).flip();
 
-            FloatBuffer cb = BufferUtils.createFloatBuffer(green.length)
+
+    public static void doesCollide() {
+        GL33.glBindVertexArray(mainPlayer.getSquareVaoId());
+
+        if (checkCollision()) {
+            cb.clear()
                     .put(green)
                     .flip();
 
             // Send the buffer (positions) to the GPU
             GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
             GL33.glVertexAttribPointer(1, 3, GL33.GL_FLOAT, false, 0, 0);
-        }
-        else {
-            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, mainPlayer.getColorsId());
+        } else {
 
-            FloatBuffer cb = BufferUtils.createFloatBuffer(red.length)
+            cb.clear()
                     .put(red)
                     .flip();
 
             // Send the buffer (positions) to the GPU
             GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
             GL33.glVertexAttribPointer(1, 3, GL33.GL_FLOAT, false, 0, 0);
-        */
+        }
     }
-
-
-
-
 }
