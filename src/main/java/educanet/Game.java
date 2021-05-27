@@ -17,11 +17,45 @@ import java.util.regex.Pattern;
 
 public class Game {
 
+    //Colors
+    public static float[] green = {
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f
+    };
+    public static float[] red = {
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+    };
+
+    static FloatBuffer cb = BufferUtils.createFloatBuffer(12).put(green).flip();
+
+    // Player
+    public static Player mainPlayer;
+    public static float playerTopLeftX = -0.125f;
+    public static float playerTopLeftY = 0.125f;
+
+    // Gamefield
+    public static ArrayList<Gamefield> gamefieldObjectArrayList = new ArrayList<>(); // list that holds all background objects
+
+    //
+    static int topLeftX = 9;
+    static int topLeftY = 10;
+    static int topRightX = 0;
+    static int topRightY = 1;
+    static int botLeftX = 6;
+    static int botLeftY = 7;
+    static int botRightX = 3;
+    static int botRightY = 4;
+
+
     public static void init(long window) {
         // Setup shaders
         Shaders.initShaders();
         prepareGamefield();
-
         createPlayer();
     }
 
@@ -31,16 +65,10 @@ public class Game {
     }
 
     public static void update(long window) {
-        movePlayer(window, Player.getMatrix());
-        doesCollide();
+        movePlayer(window, Player.getMatrix()); // change players position with WASD
+        doesCollide(); // check whether player collides with terrain
     }
 
-
-    // PLAYER
-
-    public static Player mainPlayer;
-    public static float playerTopLeftX = -0.125f;
-    public static float playerTopLeftY = 0.125f;
 
     public static void createPlayer() {
         mainPlayer = new Player();
@@ -54,7 +82,6 @@ public class Game {
         GL33.glBindVertexArray(mainPlayer.getSquareVaoId());
         GL33.glDrawElements(GL33.GL_TRIANGLES, mainPlayer.getVertices().length, GL33.GL_UNSIGNED_INT, 0);
     }
-
 
     public static void movePlayer(long window, Matrix4f matrix) {
         if(GLFW.glfwGetKey(window, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS) { // Move up
@@ -83,22 +110,12 @@ public class Game {
         }
     }
 
-
-    // GAMEFIELD
-
-    public static ArrayList<Gamefield> gamefieldObjectArrayList = new ArrayList<>();
-
-    public static String gameField;
-    public static int numberOfObjectsGamefield;
-
     public static void renderGamefield() {
         Gamefield.matrix.get(Gamefield.matrixBuffer);
         int location = GL33.glGetUniformLocation(Shaders.shaderProgramId, "matrix");
         GL33.glUniformMatrix4fv(location, false, Gamefield.matrixBuffer);
 
-        for (int i = 0; i < gamefieldObjectArrayList.size(); i++) {
-            Gamefield g = gamefieldObjectArrayList.get(i);
-
+        for (Gamefield g : gamefieldObjectArrayList) {
             GL33.glUseProgram(Shaders.shaderProgramId); // use this shader to render
             GL33.glBindVertexArray(g.getVaoId());
             GL33.glDrawElements(GL33.GL_TRIANGLES, g.getVertices().length, GL33.GL_UNSIGNED_INT, 0);
@@ -106,45 +123,36 @@ public class Game {
     }
 
     public static void prepareGamefield() { // read file, convert to verticies, add Squares to ArrayList
+        String gameField = "";
+        int numberOfObjectsGamefield = 0;
+
         String path = "src/main/gameResources/gamefield.txt";
         File level = new File(path);
 
-        if (level.exists() && level.canRead()) {//checks if maze file exists and is readable
+        if (level.exists() && level.canRead()) { //checks if maze file exists and is readable
             gameField = FileUtils.readFile(path);
         }
-        Matcher m = Pattern.compile("\r\n|\r|\n").matcher(gameField); //using matcher to not fill up gc with useless strings from .split();
-        while (m.find()) {
+        Matcher m = Pattern.compile("\r\n|\r|\n").matcher(gameField); // using matcher to not fill up gc with useless strings from .split();
+        while (m.find()) { // while matches has next line, increment number
             numberOfObjectsGamefield++;
         }
 
-        String[] objs = gameField.split("\n");
+        String[] objs = gameField.split("\n"); // split into strings by new line
 
-        for (int i = 0; i < numberOfObjectsGamefield; i++) {
+        for (int i = 0; i < numberOfObjectsGamefield; i++) { // for reach object
             String[] objAtrribs = objs[i].split(";");
             Gamefield g = new Gamefield();
-            float[] newVerticies = {
+            float[] newVerticies = { // converts coordinates to verticies
                     Float.parseFloat(objAtrribs[0]) + Float.parseFloat(objAtrribs[2]), Float.parseFloat(objAtrribs[1]),                                   0, // top right
                     Float.parseFloat(objAtrribs[0]) + Float.parseFloat(objAtrribs[2]), Float.parseFloat(objAtrribs[1]) - Float.parseFloat(objAtrribs[2]), 0, // bottom right
                     Float.parseFloat(objAtrribs[0]),                                   Float.parseFloat(objAtrribs[1]) - Float.parseFloat(objAtrribs[2]), 0, // bottom left
                     Float.parseFloat(objAtrribs[0]),                                   Float.parseFloat(objAtrribs[1]),                                   0, // top left
             };
-            g.setVertices(newVerticies);
-            gamefieldObjectArrayList.add(g);
+            g.setVertices(newVerticies); // assign verticies to temporary instance of Gamefield
+            gamefieldObjectArrayList.add(g); // add
         }
     }
 
-    static int topLeftX = 9;
-    static int topLeftY = 10;
-    static int topRightX = 0;
-    static int topRightY = 1;
-    static int botLeftX = 6;
-    static int botLeftY = 7;
-    static int botRightX = 3;
-    static int botRightY = 4;
-
-    static boolean collides = false;
-
-    static int counter = 0;
     public static boolean checkCollision() {
         for (int i = 0; i < gamefieldObjectArrayList.size(); i++) {
             // for all 4 corner of player if x is in interval of (x left < corner < x right of object)
@@ -152,7 +160,6 @@ public class Game {
 
             float[] verticesObject = g.getVertices();
 
-            counter++;
 
             // top left corner of player
             if (((playerTopLeftX > verticesObject[topLeftX] && playerTopLeftX < verticesObject[topRightX]) // check upper x axis
@@ -161,31 +168,11 @@ public class Game {
                     ((playerTopLeftY > verticesObject[botLeftY] && playerTopLeftY < verticesObject[topLeftY]) // check left-side y axis
                     || (playerTopLeftY - 0.25f > verticesObject[botRightY] && playerTopLeftY - 0.25f < verticesObject[topRightY]))) // check right-side y axis
             {
-
-                if (counter % 100 == 0) {
-                    System.out.println("collides" + "  " + counter);
-                }
                 return true;
             }
         }
         return false;
     }
-
-    public static float[] green = {
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f
-    };
-    public static float[] red = {
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-    };
-
-    static FloatBuffer cb = BufferUtils.createFloatBuffer(12).put(green).flip();
-
 
     public static void doesCollide() {
         GL33.glBindVertexArray(mainPlayer.getSquareVaoId());
@@ -196,17 +183,14 @@ public class Game {
                     .flip();
 
             // Send the buffer (positions) to the GPU
-            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
-            GL33.glVertexAttribPointer(1, 3, GL33.GL_FLOAT, false, 0, 0);
         } else {
-
             cb.clear()
                     .put(red)
                     .flip();
 
             // Send the buffer (positions) to the GPU
-            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
-            GL33.glVertexAttribPointer(1, 3, GL33.GL_FLOAT, false, 0, 0);
         }
+        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, cb, GL33.GL_STATIC_DRAW);
+        GL33.glVertexAttribPointer(1, 3, GL33.GL_FLOAT, false, 0, 0);
     }
 }
